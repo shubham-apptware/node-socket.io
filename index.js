@@ -1,27 +1,34 @@
-const http = require('http')
+const http = require('http');
 const express = require('express');
 const app = express();
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
 const path = require('path');
 
-io.on("connection",(socket)=> {
-    console.log('A new user has connected -',socket.id);
-
-    socket.on("chat message",(message)=>{
-        console.log('got new msg -',message);
-        io.emit('chat message', message);
-    })
+// Configure CORS for Socket.IO
+const io = new Server(server, {
+    cors: {
+        origin: '*', // You can specify allowed origins instead of '*'
+        methods: ['GET', 'POST'],
+    },
 });
 
-app.use(express.static(path.resolve('./public')))
+io.on("connection", (socket) => {
+    console.log('A new user has connected -', socket.id);
 
-app.get('/',(req, res)=>{
-    res.sendFile("public/index.html")
-})
+    socket.on("chat message", (message) => {
+        console.log('got new msg -', message);
+        io.emit('chat message', message);
+    });
+});
 
+// Serve static files
+app.use(express.static(path.resolve('./public')));
 
-server.listen(8080,()=>{
+app.get('/', (req, res) => {
+    res.sendFile("public/index.html");
+});
+
+server.listen(8080, () => {
     console.log(`Server Started on the port 8080`);
-})
+});
