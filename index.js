@@ -10,6 +10,7 @@ const io = new Server(server, {
     cors: {
         origin: '*', // You can specify allowed origins instead of '*'
         methods: ['GET', 'POST'],
+        transports: ['websocket']
     },
 });
 
