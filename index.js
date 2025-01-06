@@ -16,6 +16,12 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
     console.log('A new user has connected -', socket.id);
 
+    // Capture any message sent to this socket
+    socket.onAny((event, ...args) => {
+        console.log(`Received event: ${event}`, args);
+    });
+
+    // Example specific event handler
     socket.on("chat message", (message) => {
         console.log('got new msg -', message);
         io.emit('chat message', message);
