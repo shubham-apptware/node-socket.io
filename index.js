@@ -2,30 +2,31 @@ const http = require('http');
 const express = require('express');
 const app = express();
 const server = http.createServer(app);
-const { Server } = require("socket.io");
+const WebSocket = require('ws');
 const path = require('path');
 
-// Configure CORS for Socket.IO
-const io = new Server(server, {
-    cors: {
-        origin: '*', // You can specify allowed origins instead of '*'
-        methods: ['GET', 'POST'],
-        transports: ['websocket']
-    },
-});
+// Create a WebSocket server
+const wss = new WebSocket.Server({ server });
 
-io.on("connection", (socket) => {
-    console.log('A new user has connected -', socket.id);
+wss.on('connection', (ws) => {
+    console.log('A new user has connected');
 
-    // Capture any message sent to this socket
-    socket.onAny((event, ...args) => {
-        console.log(`Received event: ${event}`, args);
+    // Listen for messages from the client
+    ws.on('message', (data) => {
+        const message = data.toString();
+        console.log('Received:', message);
+
+        // Broadcast the message to all connected clients
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(message);
+            }
+        });
     });
 
-    // Example specific event handler
-    socket.on("chat message", (message) => {
-        console.log('got new msg -', message);
-        io.emit('chat message', message);
+    // Handle connection close
+    ws.on('close', () => {
+        console.log('A user has disconnected');
     });
 });
 
@@ -33,9 +34,10 @@ io.on("connection", (socket) => {
 app.use(express.static(path.resolve('./public')));
 
 app.get('/', (req, res) => {
-    res.sendFile("public/index.html");
+    res.sendFile(path.resolve('./public/index.html'));
 });
 
+// Start the server
 server.listen(8080, () => {
-    console.log(`Server Started on the port 8080`);
+    console.log(`Server started on port 8080`);
 });
