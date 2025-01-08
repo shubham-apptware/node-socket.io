@@ -16,9 +16,9 @@ wss.on('connection', (ws) => {
         const message = data.toString();
         console.log('Received:', message);
 
-        // Broadcast the message to all connected clients
+        // Broadcast the message to all connected clients except the sender
         wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
                 client.send(message);
             }
         });
@@ -29,6 +29,7 @@ wss.on('connection', (ws) => {
         console.log('A user has disconnected');
     });
 });
+
 
 // Serve static files
 app.use(express.static(path.resolve('./public')));
